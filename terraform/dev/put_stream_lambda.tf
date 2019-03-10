@@ -7,30 +7,17 @@ resource "aws_lambda_function" "put_stream" {
   runtime          = "nodejs8.10"
 }
 
-resource "aws_api_gateway_resource" "streaming" {
+resource "aws_api_gateway_integration" "put_lambda" {
   rest_api_id = "${aws_api_gateway_rest_api.example.id}"
-  parent_id   = "${aws_api_gateway_rest_api.example.root_resource_id}"
-  path_part   = "streaming"
-}
-
-resource "aws_api_gateway_method" "streaming" {
-  rest_api_id   = "${aws_api_gateway_rest_api.example.id}"
-  resource_id   = "${aws_api_gateway_resource.streaming.id}"
-  http_method   = "PUT"
-  authorization = "NONE"
-}
-
-resource "aws_api_gateway_integration" "lambda" {
-  rest_api_id = "${aws_api_gateway_rest_api.example.id}"
-  resource_id = "${aws_api_gateway_method.streaming.resource_id}"
-  http_method = "${aws_api_gateway_method.streaming.http_method}"
+  resource_id = "${aws_api_gateway_method.put_streaming.resource_id}"
+  http_method = "${aws_api_gateway_method.put_streaming.http_method}"
 
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
   uri                     = "${aws_lambda_function.put_stream.invoke_arn}"
 }
 
-resource "aws_lambda_permission" "apigw_lambda" {
+resource "aws_lambda_permission" "apigw_put_lambda" {
   statement_id  = "AllowExecutionFromAPIGateway"
   action        = "lambda:InvokeFunction"
   function_name = "${aws_lambda_function.put_stream.arn}"

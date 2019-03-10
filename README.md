@@ -19,3 +19,5 @@ TODO:
  + deployment scripts
  + integration tests scripts to simulate streaming
  + refactoring javascript/deployment (webpack maybe) / terraform policies
+ + Create more granular IAM roles for lambda execution.
+ + Add Webpack build and include streamId uuid creation into the putStreaming
