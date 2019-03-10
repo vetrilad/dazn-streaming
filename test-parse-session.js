@@ -2,7 +2,7 @@ import test from 'ava';
 import sinon from "sinon";
 import AWS from "aws-sdk-mock";
 
-import { handler } from "./index.js";
+import { handler } from "./check-session.js";
 
 const callback = sinon.spy();
 const putItemSpy = sinon.spy();

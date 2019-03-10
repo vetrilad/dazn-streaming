@@ -16,7 +16,7 @@ resource "aws_dynamodb_table" "video_streaming" {
   }
 
   ttl {
-    attribute_name = "TimeToExist"
-    enabled        = false
+    attribute_name = "ttl"
+    enabled        = true
   }
 }

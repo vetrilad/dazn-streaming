@@ -1,6 +1,9 @@
 var AWS = require('aws-sdk');
+const TTL = 60;
+
 exports.handler = (event, context, callback) => {
   var dynamoDb = new AWS.DynamoDB();
+  // TODO: investigate if event can contain more then one record.
   event.Records.forEach((record) => {
     // console.log(record.eventID);
     // console.log(record.eventName);
@@ -11,7 +14,6 @@ exports.handler = (event, context, callback) => {
       if (err) {
         console.log(err, err.stack);
       } else {
-        console.log("GETITEM" + data)
         if (data.Items.length > 3) {
           var blocked = {
             "status": {
@@ -32,8 +34,14 @@ exports.handler = (event, context, callback) => {
               S: "HOT"
             }
           };
-          console.log(data);
-          dynamoDb.putItem({ TableName: "videoStream", Item: {"userid": {S: userid}, "streamId": {S: streamId}, ...hot}}, (err, data) => {
+          var t = new Date();
+          t.setSeconds(t.getSeconds() + TTL);
+          const ttl = {
+            "ttl": {
+              S: Math.floor(t / 1000)
+            }
+          };
+          dynamoDb.putItem({ TableName: "videoStream", Item: {"userid": {S: userid}, "streamId": {S: streamId}, ...hot, ...ttl}}, (err, data) => {
             console.log("Hot Stream");
             console.log(data);
           });
