@@ -5,8 +5,8 @@ resource "aws_dynamodb_table" "video_streaming" {
   hash_key       = "userid"
   range_key      = "streamId"
   stream_enabled = true
-  stream_view_type = "NEW_IMAGE"
-  
+  stream_view_type = "NEW_AND_OLD_IMAGES"
+
   attribute {
     name = "userid"
     type = "S"

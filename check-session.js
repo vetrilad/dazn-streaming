@@ -36,12 +36,21 @@ exports.handler = (event, context, callback) => {
           };
           var t = new Date();
           t.setSeconds(t.getSeconds() + TTL);
-          const ttl = {
+          var ttl = {
             "ttl": {
-              S: Math.floor(t / 1000)
+              S: Math.floor(t / 1000).toString()
             }
           };
-          dynamoDb.putItem({ TableName: "VideoStreams", Item: {"userid": {S: userid}, "streamId": {S: streamId}, ...hot}}, (err, data) => {
+          console.log(ttl);
+          dynamoDb.putItem({
+            TableName: "VideoStreams",
+            Item: {
+              "userid": {S: userid},
+              "streamId": {S: streamId},
+              ...hot,
+              ...ttl
+            }
+          }, (err, data) => {
             console.log("Hot Stream");
             console.log(data);
           });

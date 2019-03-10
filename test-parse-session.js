@@ -56,7 +56,7 @@ test('when there are over the threshold sessions it sets status field to errored
 
   handler(event, black_function, callback);
   var expectedParams = {
-    TableName: "videoStream",
+    TableName: "VideoStreams",
     Item: {
       userid: {
        S: "101112"
