@@ -38,6 +38,25 @@ resource "aws_iam_role_policy" "iam_for_put_stream_lambda" {
       "Action": "logs:*",
       "Effect": "Allow",
       "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+          "dynamodb:DescribeStream",
+          "dynamodb:GetRecords",
+          "dynamodb:GetShardIterator",
+          "dynamodb:ListStreams",
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "VisualEditor0",
+      "Effect": "Allow",
+      "Action": "dynamodb:Query",
+      "Resource": "*"
     }
   ]
 }

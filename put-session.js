@@ -1,8 +1,8 @@
 var AWS = require('aws-sdk');
 const TTL = 60; // seconds
+var dynamoDb = new AWS.DynamoDB();
 
 exports.handler = (event, context, callback) => {
-  var dynamoDb = new AWS.DynamoDB();
   const userid = event.queryStringParameters.account;
   const streamId = event.queryStringParameters.streamId;
 

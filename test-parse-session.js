@@ -75,3 +75,7 @@ test('when there are over the threshold sessions it sets status field to errored
   t.true(putItemSpy.calledWith(expectedParams))
   t.true(callback.called);
 });
+
+test('cheking for the new streams only and ignores ttl updates', t => {
+
+});

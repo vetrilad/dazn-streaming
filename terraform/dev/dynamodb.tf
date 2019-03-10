@@ -4,7 +4,9 @@ resource "aws_dynamodb_table" "video_streaming" {
   write_capacity = 5
   hash_key       = "userid"
   range_key      = "streamId"
-
+  stream_enabled = true
+  stream_view_type = "NEW_IMAGE"
+  
   attribute {
     name = "userid"
     type = "S"

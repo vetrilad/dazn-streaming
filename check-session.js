@@ -10,7 +10,7 @@ exports.handler = (event, context, callback) => {
     console.log('DynamoDB Record: %j', record.dynamodb);
     var userid = record.dynamodb.Keys.userid.S;
     var streamId = record.dynamodb.Keys.streamId.S;
-    dynamoDb.query({ TableName: "videoStream", ExpressionAttributeValues: {":v1": {S: userid}}, KeyConditionExpression: "userid = :v1" }, (err, data) => {
+    dynamoDb.query({ TableName: "VideoStreams", ExpressionAttributeValues: {":v1": {S: userid}}, KeyConditionExpression: "userid = :v1" }, (err, data) => {
       if (err) {
         console.log(err, err.stack);
       } else {
@@ -23,7 +23,7 @@ exports.handler = (event, context, callback) => {
               S: "Threshold Limit reached"
             }
           };
-          dynamoDb.putItem({ TableName: "videoStream", Item: {"userid": {S: userid}, "streamId": {S: streamId}, ...blocked}}, (err, data) => {
+          dynamoDb.putItem({ TableName: "VideoStreams", Item: {"userid": {S: userid}, "streamId": {S: streamId}, ...blocked}}, (err, data) => {
             console.log("Blocked Stream");
             console.log(err);
             return callback(null, data);
@@ -41,7 +41,7 @@ exports.handler = (event, context, callback) => {
               S: Math.floor(t / 1000)
             }
           };
-          dynamoDb.putItem({ TableName: "videoStream", Item: {"userid": {S: userid}, "streamId": {S: streamId}, ...hot, ...ttl}}, (err, data) => {
+          dynamoDb.putItem({ TableName: "VideoStreams", Item: {"userid": {S: userid}, "streamId": {S: streamId}, ...hot}}, (err, data) => {
             console.log("Hot Stream");
             console.log(data);
           });
