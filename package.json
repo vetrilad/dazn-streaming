@@ -15,5 +15,9 @@
     "build-check": "zip ./terraform/bin/check_lambda.zip check-session.js",
     "build-put": "zip ./terraform/bin/put_lambda.zip put-session.js",
     "build-get": "zip ./terraform/bin/get_lambda.zip get-session.js"
+  },
+  "dependencies": {
+    "axios": "^0.18.0",
+    "uuid": "^3.3.2"
   }
 }
