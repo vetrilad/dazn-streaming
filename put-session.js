@@ -18,9 +18,27 @@ exports.handler = (event, context, callback) => {
         },
     });
 
-    dynamoDb.putItem({
+    // check if there are any unprocessed items and then insert.
+    dynamoDb.query({
         TableName: "VideoStreams",
-        Item: {"userid": {S: userid}, "streamId": {S: streamId}}},
-        done
-    );
+        ExpressionAttributeValues: {":v1": {S: userid}},
+        KeyConditionExpression: "userid = :v1"
+    }, (err, data) => {
+        const unprocessedItems = data.Items.filter((item) => {
+            return item.status === "UNPROCESSED";
+        });
+        if (unprocessedItems.length === 0) {
+            dynamoDb.putItem({
+                TableName: "VideoStreams",
+                Item: {
+                    "userid": {S: userid},
+                    "streamId": {S: streamId},
+                    "status": {S: "UNPROCESSED"}}
+                },
+                done
+            );
+        } else {
+            callback(`unprocessed records for user`, null)
+        }
+    });
 };
