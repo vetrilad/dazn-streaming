@@ -1,14 +1,10 @@
 var AWS = require('aws-sdk');
-const TTL = 60; // seconds
+const TTL = 5; // seconds
 var dynamoDb = new AWS.DynamoDB();
 
 exports.handler = (event, context, callback) => {
     const userid = event.queryStringParameters.account;
     const streamId = event.queryStringParameters.streamId;
-
-    var timeNow = new Date();
-    timeNow.setSeconds(timeNow.getSeconds() + TTL);
-    const ttl = Math.floor(timeNow / 1000);
 
     const done = (err, res) => callback(null, {
         statusCode: err ? '400' : '200',
@@ -33,12 +29,13 @@ exports.handler = (event, context, callback) => {
                 Item: {
                     "userid": {S: userid},
                     "streamId": {S: streamId},
-                    "status": {S: "UNPROCESSED"}}
-                },
+                    "status": {S: "UNPROCESSED"},
+                    "ttl": {N: (Math.floor(Date.now() / 1000) + TTL).toString()}
+                }},
                 done
             );
         } else {
-            callback(`unprocessed records for user`, null)
+            callback(`Unprocessed records for user`, null)
         }
     });
 };

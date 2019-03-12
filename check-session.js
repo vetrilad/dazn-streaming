@@ -1,5 +1,5 @@
 var AWS = require('aws-sdk');
-const TTL = 1;
+const TTL = 5;
 const blocked = {
     "status": {
         S: "DROPPED"
@@ -26,17 +26,23 @@ exports.handler = (event, context, callback) => {
             dynamoDb.query({
                 TableName: "VideoStreams",
                 ExpressionAttributeValues: {":v1": {S: userid}},
+                ConsistentRead: true,
                 KeyConditionExpression: "userid = :v1"
             }, (err, data) => {
                 if (err) {
                     console.log(err, err.stack);
                 } else {
+                    var items = data.Items.filter(item => {
+                        return item.ttl.N >= Math.floor(Date.now() / 1000) &&
+                            (item.status.S == "HOT" || item.status.S == "UNPROCESSED");
+                    })
                     var ttl = {
                         "ttl": {
                             N: (Math.floor(Date.now() / 1000) + TTL).toString()
                         }
                     };
-                    if (data.Items.length > 3) {
+                    console.log(items);
+                    if (items.length > 3 ) {
                         dynamoDb.putItem({
                             TableName: "VideoStreams",
                             Item: {
@@ -47,8 +53,14 @@ exports.handler = (event, context, callback) => {
                             }
                         }, (err, data) => {
                             console.log("Blocked Stream");
-                            console.log(err);
-                            return callback(null, data);
+                            if (data) {
+                                console.log("data: ", data);
+                                callback(null, data)
+                            };
+                            if (err) {
+                                console.log("Error: ", err);
+                                callback(err)
+                            };
                         });
                     } else {
                         dynamoDb.putItem({
@@ -61,15 +73,20 @@ exports.handler = (event, context, callback) => {
                             }
                         }, (err, data) => {
                             console.log("Hot Stream");
-                            console.log(data);
-                            console.log(err);
+                            if (data) {
+                                console.log("data: ", data);
+                                callback(null, data)
+                            };
+                            if (err) {
+                                console.log("Error: ", err);
+                                callback(err)
+                            };
                         });
                     }
                 };
             });
         } else {
-            console.log("Bypass Stream Check function");
+            callback(null, "Bypass Stream Check function");
         }
     });
-    return callback(null, "Finished");
 };

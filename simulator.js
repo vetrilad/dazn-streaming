@@ -12,7 +12,7 @@ program
 
 const API = "https://ixgpgxyuhh.execute-api.eu-west-1.amazonaws.com/test/streaming";
 const params = {
-    account: uuidv4().toString(),
+    account: program.user || uuidv4().toString(),
     streamId: uuidv4().toString()
 };
 
@@ -21,26 +21,32 @@ const sleep = (ms) => {
 };
 
 const startStreaming = (account, streamId) => {
-    axios.put(API + "?account=" + account + "&streamId=" + streamId)
+    return axios.put(API + "?account=" + account + "&streamId=" + streamId)
     .then(data => {
-        return console.log(data.data);
+        console.log("Start Streaming OK", data.data);
     })
-    .catch(err => console.log(err));
+    .catch(err => console.log("Start Streaming error", err));
 };
 
-const checkStreaming = (account, streamId) => {
-    axios.get(API + "?account=" + account + "&streamId=" + streamId)
+const checkStreaming = (account, streamId, callback) => {
+    return axios.get(API + "?account=" + account + "&streamId=" + streamId)
     .then(data => {
-        return console.log(data.data);
+        console.log("Check streaming OK ", data.data);
+        callback()
     })
-    .catch(err => console.log(err));
+    .catch(err => console.log("Check Streaming error", err));
 };
 
-console.log(program.user);
-// startStreaming(program.user = params.account, params.streamId);
+const sleep5secs = () => {
+    setTimeout(() => {
+        checkStreaming(params.account, params.streamId, sleep5secs)
+    }, 2000)
+};
 
+startStreaming(params.account, params.streamId).then((res) => {
+    checkStreaming(params.account, params.streamId, sleep5secs);
+});
 
-// checkStreaming(program.user = params.account, params.streamId);
 
 // axios.get(apiGatewayUrl, session)
 // .then(date => console.log("GET" + data))

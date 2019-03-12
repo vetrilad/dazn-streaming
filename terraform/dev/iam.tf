@@ -28,7 +28,8 @@ resource "aws_iam_role_policy" "iam_for_put_stream_lambda" {
     {
       "Sid": "Stmt1552233833464",
       "Action": [
-        "dynamodb:PutItem"
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem"
       ],
       "Effect": "Allow",
       "Resource": "*"
