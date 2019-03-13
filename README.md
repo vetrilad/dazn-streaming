@@ -16,8 +16,11 @@ chmod u+x simulator.js
 ```
 
 ## Behaviour
-## Architecture
-## Infrastructure
+To improve the user experience, the system is designed to return a session ID and then to validate the session and cut the streaming in case of an issue. This should improve the experience for valid streamers. This design makes room for other validation tasks which might have increased latency.
+
+## Scaling
+This solution leverages DynamoDB high availability and autoscaling and lambda dynamic charging. If it because a high velocity application it might require migration to a EC2 and loadbalancers alternative to the lambda functions. 
+Typical Streaming session will require `1RCU and 1WCU` and that will scale directly proportionally with any new streaming session which will require scaling on dynamoDB and can use reserve capacity for upcoming events. 
 
 ## Unit tests
 ```
@@ -25,7 +28,7 @@ nvm use 8
 yarn
 yarn test
 ```
-and to run the streaming simulation
+and to run the streaming simulation (need to deploy the system)
 ```
 chmod u+x simulator.js
 ./simulate.js
@@ -44,9 +47,6 @@ terraform apply
 
 ## Future work
 It is a high velocity application and lambda might not be the cost optimal solution and could be replaced with EC2 and load balancers.
-
-Deployment via terraform. Local Development in javascript and testing with ava.
-Leverage DynamoDB high availability and autoscaling.
 
 TODO:
  + ~~node.js api~~
