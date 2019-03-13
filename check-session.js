@@ -30,7 +30,7 @@ exports.handler = (event, context, callback) => {
                 KeyConditionExpression: "userid = :v1"
             }, (err, data) => {
                 if (err) {
-                    console.log(err, err.stack);
+                    console.log("", err.stack);
                 } else {
                     var items = data.Items.filter(item => {
                         return item.ttl.N >= Math.floor(Date.now() / 1000) &&
@@ -41,7 +41,6 @@ exports.handler = (event, context, callback) => {
                             N: (Math.floor(Date.now() / 1000) + TTL).toString()
                         }
                     };
-                    console.log(items);
                     if (items.length > 3 ) {
                         dynamoDb.putItem({
                             TableName: "VideoStreams",

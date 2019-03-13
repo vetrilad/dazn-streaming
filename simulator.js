@@ -40,7 +40,7 @@ const checkStreaming = (account, streamId, callback) => {
 const sleep5secs = () => {
     setTimeout(() => {
         checkStreaming(params.account, params.streamId, sleep5secs)
-    }, 2000)
+    }, 1000)
 };
 
 startStreaming(params.account, params.streamId).then((res) => {
