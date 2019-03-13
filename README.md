@@ -2,13 +2,20 @@
 
 ## Getting Started
 The service is deployed to a personal AWS test environment using master branch of this repo. You can run a quick check of the system by running the simulator script. Run multiple instances of the scipt to simulate concurrent streaming session. Use `./simulate.js -u 123` to reproduce the scenario for one user consuming multiple streams, otherwise you will get random user on each run.
+
+`API = https://ixgpgxyuhh.execute-api.eu-west-1.amazonaws.com/test/streaming`
+
+```
+Create Session - PUT https://ixgpgxyuhh.execute-api.eu-west-1.amazonaws.com/test/streaming?account={string}&streamId={string}
+Get Session - GET https://ixgpgxyuhh.execute-api.eu-west-1.amazonaws.com/test/streaming?account={string}&streamId={string}
+```
+
 ```
 chmod u+x simulator.js
 ./simulate.js --help
 ```
 
 ## Behaviour
-
 ## Architecture
 ## Infrastructure
 
@@ -49,7 +56,7 @@ TODO:
  + ~~source code/ buildable viewable~~
  + ~~external libs~~
  + ~~instalation and deployment instructions~~
- + URL for testing the service online
+ + ~~URL for testing the service online~~
  + ~~put session lambda~~
  + ~~check session lambda~~
  + ~~get session lambda~~
