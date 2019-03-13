@@ -3,21 +3,20 @@
 const axios = require('axios');
 const uuidv4 = require('uuid/v4');
 var program = require('commander');
+var fs = require('fs');
 
 program
-  .version('0.1.0')
-  .option('-u, --user [user]', 'Account id')
-  .parse(process.argv);
+    .version('0.1.0')
+    .option('-u, --user [user]', 'Account id')
+    .parse(process.argv);
 
+console.log("Reading Terraform outputs for API URL");
+var obj = JSON.parse(fs.readFileSync('./terraform/dev/terraform.tfstate', 'utf8'));
 
-const API = "https://ixgpgxyuhh.execute-api.eu-west-1.amazonaws.com/test/streaming";
+const API = obj.modules[0].outputs.api_url.value + "/streaming" || "https://ixgpgxyuhh.execute-api.eu-west-1.amazonaws.com/test/streaming";
 const params = {
     account: program.user || uuidv4().toString(),
     streamId: uuidv4().toString()
-};
-
-const sleep = (ms) => {
-    return new Promise(resolve => setTimeout(resolve, ms));
 };
 
 const startStreaming = (account, streamId) => {
@@ -46,8 +45,3 @@ const sleep5secs = () => {
 startStreaming(params.account, params.streamId).then((res) => {
     checkStreaming(params.account, params.streamId, sleep5secs);
 });
-
-
-// axios.get(apiGatewayUrl, session)
-// .then(date => console.log("GET" + data))
-// .catch(err => console.log(err))

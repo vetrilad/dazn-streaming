@@ -2,6 +2,6 @@ node_modules
 *.terraform
 *.zip
 *.tfvars
-*.tfvars
+!.example.*.tfvars
 *.tfstate
 *.tfstate.backup
