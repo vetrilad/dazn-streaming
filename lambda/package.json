@@ -12,7 +12,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "test": "ava -v ./test/",
+    "test": "ava -v ./test/test-*.js",
     "lint": "eslint . --fix",
     "build": "yarn build-check && yarn build-put && yarn build-get",
     "build-check": "zip ../terraform/bin/check_lambda.zip src/check-session.js",

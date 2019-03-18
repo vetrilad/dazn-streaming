@@ -3,84 +3,24 @@ import sinon from "sinon";
 import AWS from "aws-sdk-mock";
 
 import { handler } from "../src/check-session.js";
+import { invalidUserSessions, insertEvent, updateEvent } from "./helpers.js";
 
-const callback = sinon.spy();
-const putItemSpy = sinon.spy();
-const black_function = () => {};
+test.afterEach(t => {
+	AWS.restore('DynamoDB');
+});
 
-test('when there are over the threshold sessions it sets status field to errored and reasons field to threshold exided', async t => {
+test.serial('when there are over the threshold sessions it sets status field to errored and reasons field to threshold exided', async t => {
+    const putItemSpy = sinon.spy();
+
     AWS.mock('DynamoDB', 'putItem', (params, callback) => {
         putItemSpy(params);
         callback(null, "Item inserted");
     });
-    AWS.mock('DynamoDB', 'query', (params, callback) => {
-        callback(null, {Items: [
-            {
-                "userid": {
-                    S: "1235"
-                },
-                "streamId": {
-                    S: "67890"
-                },
-                "status": {
-                    S: "UNPROCESSED"
-                },
-                "ttl": {
-                    N: (Math.floor(Date.now() / 1000) + 5).toString()
-                }
-            },{
-                "userid": {
-                    S: "1235"
-                },
-                "streamId": {
-                    S: "67890343"
-                },
-                "status": {
-                    S: "HOT"
-                },
-                "ttl": {
-                    N: (Math.floor(Date.now() / 1000) + 5).toString()
-                }
-            },{
-                "userid": {
-                    S: "6789"
-                },
-                "streamId": {
-                    S: "67890"
-                },
-                "status": {
-                    S: "HOT"
-                },
-                "ttl": {
-                    N: (Math.floor(Date.now() / 1000) + 5).toString()
-                }
-            },{
-                "userid": {
-                    S: "101112"
-                },
-                "streamId": {
-                    S: "67890"
-                },
-                "status": {
-                    S: "HOT"
-                },
-                "ttl": {
-                    N: (Math.floor(Date.now() / 1000) + 5).toString()
-                }
-            }]
-        })});
 
-    var event = {
-        Records: [{
-            eventName: "INSERT",
-            dynamodb: {
-                Keys: {
-                    userid: {S:"101112"},
-                    streamId: {S:"67890"}
-                }
-            }
-        }]
-    }
+    AWS.mock('DynamoDB', 'query', (params, callback) => {
+        callback(null, invalidUserSessions)
+    });
+
     var expectedParams = {
         TableName: "VideoStreams",
         Item: {
@@ -101,24 +41,13 @@ test('when there are over the threshold sessions it sets status field to errored
             }
         }
     };
-    const response = await handler(event);
+
+    const response = await handler(insertEvent);
     t.true(putItemSpy.calledWithMatch(expectedParams));
     t.is(response, "Item inserted")
 });
 
-test('cheking for the new streams only and ignores ttl updates', async t => {
-    var event = {
-        Records: [{
-            eventName: "UPDATE",
-            dynamodb: {
-                Keys: {
-                    userid: {S:"101112"},
-                    streamId: {S:"67890"}
-                }
-            }
-        }]
-    }
-
-    const response = await handler(event);
+test.serial('cheking for the new streams only and ignores ttl updates', async t => {
+    const response = await handler(updateEvent);
     t.is(response, "Bypass Stream Check function");
 });
