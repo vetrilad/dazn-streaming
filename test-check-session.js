@@ -8,8 +8,11 @@ const callback = sinon.spy();
 const putItemSpy = sinon.spy();
 const black_function = () => {};
 
-test('when there are over the threshold sessions it sets status field to errored and reasons field to threshold exided', t => {
-    AWS.mock('DynamoDB', 'putItem', putItemSpy);
+test('when there are over the threshold sessions it sets status field to errored and reasons field to threshold exided', async t => {
+    AWS.mock('DynamoDB', 'putItem', (params, callback) => {
+        putItemSpy(params);
+        callback(null, "Item inserted");
+    });
     AWS.mock('DynamoDB', 'query', (params, callback) => {
         callback(null, {Items: [
             {
@@ -78,8 +81,6 @@ test('when there are over the threshold sessions it sets status field to errored
             }
         }]
     }
-
-    handler(event, black_function, callback);
     var expectedParams = {
         TableName: "VideoStreams",
         Item: {
@@ -100,10 +101,12 @@ test('when there are over the threshold sessions it sets status field to errored
             }
         }
     };
+    const response = await handler(event);
     t.true(putItemSpy.calledWithMatch(expectedParams));
+    t.is(response, "Item inserted")
 });
 
-test('cheking for the new streams only and ignores ttl updates', t => {
+test('cheking for the new streams only and ignores ttl updates', async t => {
     var event = {
         Records: [{
             eventName: "UPDATE",
@@ -116,6 +119,6 @@ test('cheking for the new streams only and ignores ttl updates', t => {
         }]
     }
 
-    handler(event, black_function, callback);
-    t.true(callback.calledWith(null, "Bypass Stream Check function"));
+    const response = await handler(event);
+    t.is(response, "Bypass Stream Check function");
 });

@@ -4,6 +4,7 @@
     "aws-sdk": "^2.416.0",
     "aws-sdk-mock": "^4.3.1",
     "commander": "^2.19.0",
+    "eslint": "^5.15.2",
     "sinon": "^7.2.5"
   },
   "name": "taging-service",
@@ -12,6 +13,7 @@
   "license": "MIT",
   "scripts": {
     "test": "ava -v",
+    "lint": "eslint . --fix",
     "build": "yarn build-check && yarn build-put && yarn build-get",
     "build-check": "zip ./terraform/bin/check_lambda.zip check-session.js",
     "build-put": "zip ./terraform/bin/put_lambda.zip put-session.js",
