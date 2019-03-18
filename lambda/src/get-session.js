@@ -2,6 +2,7 @@ var AWS = require('aws-sdk');
 const dynamo = new AWS.DynamoDB();
 
 exports.handler = (event, context, callback) => {
+    
     const userid = event.queryStringParameters.account;
     const streamId = event.queryStringParameters.streamId;
     const timeNow = Math.floor(Date.now() / 1000).toString();

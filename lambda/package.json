@@ -12,12 +12,12 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "test": "ava -v",
+    "test": "ava -v ./test/",
     "lint": "eslint . --fix",
     "build": "yarn build-check && yarn build-put && yarn build-get",
-    "build-check": "zip ./terraform/bin/check_lambda.zip check-session.js",
-    "build-put": "zip ./terraform/bin/put_lambda.zip put-session.js",
-    "build-get": "zip ./terraform/bin/get_lambda.zip get-session.js"
+    "build-check": "zip ../terraform/bin/check_lambda.zip src/check-session.js",
+    "build-put": "zip ../terraform/bin/put_lambda.zip src/put-session.js",
+    "build-get": "zip ../terraform/bin/get_lambda.zip src/get-session.js"
   },
   "dependencies": {
     "axios": "^0.18.0",
