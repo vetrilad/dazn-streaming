@@ -3,7 +3,7 @@ import sinon from "sinon";
 import AWS from "aws-sdk-mock";
 
 import { handler } from "../src/check-session.js";
-import { invalidUserSessions, insertEvent, updateEvent } from "./helpers.js";
+import { invalidUserSessions, insertEvent, updateEvent } from "./constants.js";
 
 test.afterEach(() => {
 	AWS.restore('DynamoDB');

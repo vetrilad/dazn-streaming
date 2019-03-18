@@ -33,15 +33,19 @@ const getUserSessions = (userid, dynamoDb) => {
     return dynamoDb.query(params).promise();
 };
 
+const activeStreamingSessions = (sessions) => {
+    return sessions.Items.filter(item => {
+        return item.ttl.N >= Math.floor(Date.now() / 1000) &&
+           (item.status.S == "HOT" || item.status.S == "UNPROCESSED");
+    });
+};
+
 const buildRequestItem = ({ dynamodb: {Keys: keys} }, dynamoDb) => {
     var userid = keys.userid.S;
-    var pr = new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
 
         getUserSessions(userid, dynamoDb).then((data) => {
-            var currentSessions = data.Items.filter(item => {
-                return item.ttl.N >= Math.floor(Date.now() / 1000) &&
-                   (item.status.S == "HOT" || item.status.S == "UNPROCESSED");
-            });
+            const currentSessions = activeStreamingSessions(data)
 
             resolve({
                 userid: userid,
@@ -50,8 +54,6 @@ const buildRequestItem = ({ dynamodb: {Keys: keys} }, dynamoDb) => {
             });
         }).catch(e => reject(e));
     });
-
-    return pr;
 };
 
 const requestNewSession = (requestItem) => {
@@ -80,26 +82,22 @@ const updateStreamingSession = (newStreamingSession, dynamoDb) => {
     return dynamoDb.putItem(params).promise();
 };
 
-exports.handler = (event) => {
+exports.handler = async (event) => {
     const dynamoDb = new AWS.DynamoDB();
-    return new Promise((resolve, reject) => {
-        event.Records.forEach((record) => {
-            try {
-                if (record.eventName == "INSERT") {
-                    buildRequestItem(record, dynamoDb).then(requestItem => {
-                        const newStreamingSession = requestNewSession(requestItem);
+    let response;
 
-                        updateStreamingSession(newStreamingSession, dynamoDb).then(resp => {
-                            resolve(resp);
-                        }).catch(e => reject(e));
-                    }).catch(e => reject(e));
-                } else {
-                    resolve("Bypass Stream Check function")
-                }
-            }
-            catch(error) {
-                reject(error)
-            }
-        });
-    });
+    try {
+        if (event.Records[0].eventName == "INSERT") {
+            const requestItem = await buildRequestItem(event.Records[0], dynamoDb)
+            const newStreamingSession = requestNewSession(requestItem);
+
+            response = await updateStreamingSession(newStreamingSession, dynamoDb);
+        } else {
+            response = "Bypass Stream Check function";
+        }
+    } catch(error) {
+        response = "Bypass Stream Check function";
+    }
+
+    return response;
 };

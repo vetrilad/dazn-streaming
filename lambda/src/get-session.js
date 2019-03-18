@@ -9,6 +9,7 @@ const getUserSession = ({userid, streamId}, dynamoDb) => {
     };
     return dynamoDb.query(params).promise();
 };
+
 const refreshStreamingSession = ({userid, streamId}, ttl, dynamo) => {
     const params = {
         TableName: "VideoStreams",
@@ -28,39 +29,43 @@ const buildRequestItem = (event) => {
     }
 };
 
-exports.handler = (event) => {
-    const dynamo = new AWS.DynamoDB();
-
-    const requestItem = buildRequestItem(event);
-
-    return new Promise((resolve,) => {
-        const done = (err, res) => resolve({
-            statusCode: err ? '400' : '200',
-            body: err ? JSON.stringify(err.message) : JSON.stringify(res),
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
-
-        if (event.httpMethod == "GET") {
-            getUserSession(requestItem, dynamo).then(res => {
-                if (res.Items.length <= 0) {
-                    done({message: {error: "Session not found"}}, null)
-                } else if (res.Items[0].status && res.Items[0].status.S == "DROPPED" ) {
-                    done({message: {error: "Session Status is " + res.Items[0].status.S}}, null)
-                } else if (res.Items[0].ttl.N < Math.floor(Date.now() / 1000)) {
-                    done({message: {error: "Session expired"}}, null)
-                } else {
-                    const ttl = ((Math.floor(Date.now() / 1000) + TTL)).toString();
-                    refreshStreamingSession(requestItem, ttl, dynamo).then(() => {
-                        done(null, {...requestItem, message: "Session ttl updated"})
-                    }).catch(error => {
-                        done(error)
-                    });
-                }
-            });
-        } else {
-            done(new Error(`Unsupported method "${event.httpMethod}"`));
+const done = (err, res) => {
+    return {
+        statusCode: err ? '400' : '200',
+        body: err ? JSON.stringify(err.message) : JSON.stringify(res),
+        headers: {
+            'Content-Type': 'application/json',
         }
-    });
+    };
+}
+
+exports.handler = async (event) => {
+    const dynamo = new AWS.DynamoDB();
+    let response;
+    let requestItem;
+
+    try {
+        if (event.httpMethod == "GET") {
+            requestItem = buildRequestItem(event);
+            const res = await getUserSession(requestItem, dynamo);
+
+            if (res.Items.length <= 0) {
+                response = done({message: {error: "Session not found"}}, null)
+            } else if (res.Items[0].status && res.Items[0].status.S == "DROPPED" ) {
+                response = done({message: {error: "Session Status is " + res.Items[0].status.S}}, null)
+            } else if (res.Items[0].ttl.N < Math.floor(Date.now() / 1000)) {
+                response = done({message: {error: "Session expired"}}, null)
+            } else {
+                const ttl = ((Math.floor(Date.now() / 1000) + TTL)).toString();
+                await refreshStreamingSession(requestItem, ttl, dynamo);
+                response = done(null, {...requestItem, message: "Session ttl updated"});
+            }
+        } else {
+            response = done(new Error(`Unsupported method "${event.httpMethod}"`));
+        }
+    } catch(error) {
+        response = done(new Error(`Unsupported method "${event.httpMethod}"`));
+    }
+
+    return response;
 };

@@ -1,41 +1,74 @@
 var AWS = require('aws-sdk');
 const TTL = 5; // seconds
-var dynamoDb = new AWS.DynamoDB();
 
-exports.handler = (event, context, callback) => {
-    const userid = event.queryStringParameters.account;
-    const streamId = event.queryStringParameters.streamId;
+const buildRequestItem = (event) => {
+    return {
+        userid: event.queryStringParameters.account,
+        streamId: event.queryStringParameters.streamId
+    }
+};
 
-    const done = (err, res) => callback(null, {
-        statusCode: err ? '400' : '200',
-        body: err ? err.message : JSON.stringify(res),
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    });
-
-    // check if there are any unprocessed items and then insert.
-    dynamoDb.query({
+const getUserSessions = ({userid}, dynamoDb) => {
+    const params = {
         TableName: "VideoStreams",
         ExpressionAttributeValues: {":v1": {S: userid}},
+        ConsistentRead: true,
         KeyConditionExpression: "userid = :v1"
-    }, (err, data) => {
-        const unprocessedItems = data.Items.filter((item) => {
-            return item.status === "UNPROCESSED";
-        });
-        if (unprocessedItems.length === 0) {
-            dynamoDb.putItem({
-                TableName: "VideoStreams",
-                Item: {
-                    "userid": {S: userid},
-                    "streamId": {S: streamId},
-                    "status": {S: "UNPROCESSED"},
-                    "ttl": {N: (Math.floor(Date.now() / 1000) + TTL).toString()}
-                }},
-                done
-            );
-        } else {
-            callback(`Unprocessed records for user`, null)
-        }
+    };
+    return dynamoDb.query(params).promise();
+};
+
+const unprocessedStreamingSessions = (sessions) => {
+    return sessions.Items.filter(item => {
+        return item.ttl.N >= Math.floor(Date.now() / 1000) &&
+           (item.status.S == "UNPROCESSED");
     });
+};
+
+const insertSession = ({userid, streamId}, dynamoDb) => {
+    const params = {
+        TableName: "VideoStreams",
+        Item: {
+            "userid": {S: userid},
+            "streamId": {S: streamId},
+            "status": {S: "UNPROCESSED"},
+            "ttl": {N: (Math.floor(Date.now() / 1000) + TTL).toString()}
+        }
+    };
+    return dynamoDb.putItem(params).promise();
+};
+
+const done = (err, res) => {
+    return {
+        statusCode: err ? '400' : '200',
+        body: err ? JSON.stringify(err.message) : JSON.stringify(res),
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    };
+}
+
+exports.handler = async event => {
+    var dynamoDb = new AWS.DynamoDB();
+
+    let response;
+    let requestitem;
+    let unprocessedSessions;
+
+    try {
+        requestItem = buildRequestItem(event);
+        streamingSessions = await getUserSessions(requestItem, dynamoDb);
+        unprocessedSessions = unprocessedStreamingSessions(streamingSessions);
+
+        if (unprocessedSessions.length === 0) {
+            await insertSession(requestItem, dynamoDb);
+            response = done(null, { message: "Created unprocessed session" });
+        } else {
+            response = done({message: "Unprocessed records for user"});
+        }
+    } catch (error) {
+        response = done({message: "Something went wrong" + error});
+    }
+
+    return response;
 };

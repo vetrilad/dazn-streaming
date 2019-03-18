@@ -114,3 +114,22 @@ module.exports.validUserSession = {
         }
     ]
 };
+
+module.exports.unprocessedUserSession = {
+    Items: [
+        {
+            "userid": {
+                S: "1235"
+            },
+            "streamId": {
+                S: "67890343"
+            },
+            "status": {
+                S: "UNPROCESSED"
+            },
+            "ttl": {
+                N: (Math.floor(Date.now() / 1000) + 5).toString()
+            }
+        }
+    ]
+};
