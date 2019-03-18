@@ -5,7 +5,7 @@ import AWS from "aws-sdk-mock";
 import { handler } from "../src/check-session.js";
 import { invalidUserSessions, insertEvent, updateEvent } from "./helpers.js";
 
-test.afterEach(t => {
+test.afterEach(() => {
 	AWS.restore('DynamoDB');
 });
 

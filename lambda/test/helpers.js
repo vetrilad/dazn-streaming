@@ -1,4 +1,4 @@
-exports.invalidUserSessions = {
+module.exports.invalidUserSessions = {
     Items: [
         {
             "userid": {
@@ -56,7 +56,7 @@ exports.invalidUserSessions = {
     ]
 };
 
-exports.insertEvent = {
+module.exports.insertEvent = {
     Records: [{
         eventName: "INSERT",
         dynamodb: {
@@ -68,7 +68,7 @@ exports.insertEvent = {
     }]
 };
 
-exports.updateEvent = {
+module.exports.updateEvent = {
     Records: [{
         eventName: "UPDATE",
         dynamodb: {
@@ -80,7 +80,7 @@ exports.updateEvent = {
     }]
 };
 
-exports.apiGatewayGETRequest = {
+module.exports.apiGatewayGETRequest = {
     httpMethod: "GET",
     queryStringParameters: {
         streamId: "1235",
@@ -88,7 +88,7 @@ exports.apiGatewayGETRequest = {
     }
 };
 
-exports.apiGatewayPUTRequest = {
+module.exports.apiGatewayPUTRequest = {
     httpMethod: "PUT",
     queryStringParameters: {
         streamId: "1235",
@@ -96,7 +96,7 @@ exports.apiGatewayPUTRequest = {
     }
 };
 
-exports.validUserSession = {
+module.exports.validUserSession = {
     Items: [
         {
             "userid": {

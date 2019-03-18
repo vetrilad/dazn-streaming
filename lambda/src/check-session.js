@@ -73,7 +73,7 @@ const requestNewSession = (requestItem) => {
 };
 
 const updateStreamingSession = (newStreamingSession, dynamoDb) => {
-    params = {
+    const params = {
         TableName: "VideoStreams",
         Item: newStreamingSession
     };
@@ -91,15 +91,15 @@ exports.handler = (event) => {
 
                         updateStreamingSession(newStreamingSession, dynamoDb).then(resp => {
                             resolve(resp);
-                        }).catch(e => console.log(e));
-                    }).catch(e => console.log(e));
+                        }).catch(e => reject(e));
+                    }).catch(e => reject(e));
                 } else {
                     resolve("Bypass Stream Check function")
-                };
+                }
             }
             catch(error) {
                 reject(error)
-            };
+            }
         });
     });
 };

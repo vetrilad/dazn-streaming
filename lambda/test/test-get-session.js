@@ -5,7 +5,7 @@ import AWS from "aws-sdk-mock";
 import { handler } from "../src/get-session.js";
 import { validUserSession, apiGatewayGETRequest } from "./helpers.js";
 
-test.afterEach(t => {
+test.afterEach(() => {
 	AWS.restore('DynamoDB');
 });
 
@@ -34,7 +34,7 @@ test.serial('updated the record with a ttl when session found', async t => {
         callback(null, "OK")
     });
 
-    const response = await handler(apiGatewayGETRequest);
+    await handler(apiGatewayGETRequest);
     t.deepEqual(
         updateItemSpy.lastCall.lastArg.ExpressionAttributeValues,
         { ':t': { N: (Math.floor(Date.now() / 1000) + 5).toString() } }

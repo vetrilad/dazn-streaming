@@ -33,18 +33,17 @@ exports.handler = (event) => {
 
     const requestItem = buildRequestItem(event);
 
-    return new Promise((resolve, reject) => {
-        if (event.httpMethod == "GET") {
-            const done = (err, res) => resolve({
-                statusCode: err ? '400' : '200',
-                body: err ? JSON.stringify(err.message) : JSON.stringify(res),
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
+    return new Promise((resolve,) => {
+        const done = (err, res) => resolve({
+            statusCode: err ? '400' : '200',
+            body: err ? JSON.stringify(err.message) : JSON.stringify(res),
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
 
+        if (event.httpMethod == "GET") {
             getUserSession(requestItem, dynamo).then(res => {
-                console.log("Query response: ", JSON.stringify(res.Items));
                 if (res.Items.length <= 0) {
                     done({message: {error: "Session not found"}}, null)
                 } else if (res.Items[0].status && res.Items[0].status.S == "DROPPED" ) {
@@ -52,8 +51,8 @@ exports.handler = (event) => {
                 } else if (res.Items[0].ttl.N < Math.floor(Date.now() / 1000)) {
                     done({message: {error: "Session expired"}}, null)
                 } else {
-                    const ttl = ((Math.floor(Date.now() / 1000) + 5)).toString();
-                    refreshStreamingSession(requestItem, ttl, dynamo).then(_ => {
+                    const ttl = ((Math.floor(Date.now() / 1000) + TTL)).toString();
+                    refreshStreamingSession(requestItem, ttl, dynamo).then(() => {
                         done(null, {...requestItem, message: "Session ttl updated"})
                     }).catch(error => {
                         done(error)
