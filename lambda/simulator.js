@@ -11,9 +11,15 @@ program
     .parse(process.argv);
 
 console.log("Reading Terraform outputs for API URL");
-var obj = JSON.parse(fs.readFileSync("../terraform/dev/terraform.tfstate", "utf8"));
+var API;
+try {
+    var obj = JSON.parse(fs.readFileSync("../terraform/dev/terraform.tfstate", "utf8"));
+    API = obj.modules[0].outputs.api_url.value + "/streaming";
+} catch (error) {
+    console.log("Terraform file not found");
+    API = "https://ixgpgxyuhh.execute-api.eu-west-1.amazonaws.com/test/streaming";
+}
 
-const API = obj.modules[0].outputs.api_url.value + "/streaming" || "https://ixgpgxyuhh.execute-api.eu-west-1.amazonaws.com/test/streaming";
 const params = {
     account: program.user || uuidv4().toString(),
     streamId: uuidv4().toString()

@@ -47,9 +47,9 @@ exports.handler = async event => {
 
         if (unprocessedSessions.length === 0) {
             await insertSession(requestItem, dynamoDb);
-            response = apiGatewayWrapper.done(null, { message: "Created unprocessed session" });
+            response = apiGatewayWrapper.done(null, { message: "Inserted unprocessed session" });
         } else {
-            response = apiGatewayWrapper.done(new Error("Unprocessed records for user"));
+            response = apiGatewayWrapper.done(new Error("Found Unprocessed records for user"));
         }
     } catch (error) {
         response = apiGatewayWrapper.done(new Error("Something went wrong" + error));

@@ -56,6 +56,25 @@ module.exports.invalidUserSessions = {
     ]
 };
 
+module.exports.validUserSessions = {
+    Items: [
+        {
+            "userid": {
+                S: "1235"
+            },
+            "streamId": {
+                S: "67890"
+            },
+            "status": {
+                S: "UNPROCESSED"
+            },
+            "ttl": {
+                N: (Math.floor(Date.now() / 1000) + 5).toString()
+            }
+        }
+    ]
+};
+
 module.exports.insertEvent = {
     Records: [{
         eventName: "INSERT",

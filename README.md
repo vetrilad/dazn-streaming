@@ -15,6 +15,19 @@ chmod u+x simulator.js
 ./simulate.js --help
 ```
 
+### Example Output
+
+```
+./simulator.js
+Reading Terraform outputs for API URL
+Start Streaming OK { message: 'Created unprocessed session' }
+Check streaming OK  { session: { valid: true, message: null },
+  userid: 'a1ab2eab-ab89-4d61-858b-9ea742138236',
+  streamId: '7cfb620c-a86a-417f-8fb7-d2e56f4c7694',
+  message: 'Session ttl updated' }
+```
+
+
 ## Behaviour
 To improve the user experience, the system is designed to return a session ID and then to validate the session and cut the streaming in case of an issue. This should improve the experience for valid streamers. This design makes room for other validation tasks which might have increased latency.
 

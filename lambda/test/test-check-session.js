@@ -3,13 +3,13 @@ import sinon from "sinon";
 import AWS from "aws-sdk-mock";
 
 import { handler } from "../src/check-session.js";
-import { invalidUserSessions, insertEvent, updateEvent } from "./constants.js";
+import { invalidUserSessions, validUserSession, insertEvent, updateEvent } from "./constants.js";
 
 test.afterEach(() => {
 	AWS.restore("DynamoDB");
 });
 
-test.serial("when there are over the threshold sessions it sets status field to errored and reasons field to threshold exided", async t => {
+test.serial("check active session for user and blocks new streaming", async t => {
     const putItemSpy = sinon.spy();
 
     AWS.mock("DynamoDB", "putItem", (params, callback) => {
@@ -47,9 +47,9 @@ test.serial("when there are over the threshold sessions it sets status field to 
     t.true(putItemSpy.calledWithMatch(expectedParams));
 });
 
-test.serial("cheking for the new streams only and ignores ttl updates", async t => {
+test.serial("check for the new streams only and ignores ttl updates", async t => {
 	const putItemSpy = sinon.spy();
-	
+
     AWS.mock("DynamoDB", "putItem", (params, callback) => {
         putItemSpy(params);
         callback(null, "Item inserted");
@@ -59,6 +59,20 @@ test.serial("cheking for the new streams only and ignores ttl updates", async t 
         callback(null, invalidUserSessions);
     });
 
+    const response = await handler(updateEvent);
+    t.deepEqual(response, []);
+});
+
+test.serial("ignore non insert events when more then one record is passed from the stream", async t => {
+    AWS.mock("DynamoDB", "putItem", (params, callback) => {
+        callback(null, "Item inserted");
+    });
+
+    AWS.mock("DynamoDB", "query", (params, callback) => {
+        callback(null, validUserSession);
+    });
+
+	updateEvent.Records.push(insertEvent.Records);
     const response = await handler(updateEvent);
     t.deepEqual(response, []);
 });

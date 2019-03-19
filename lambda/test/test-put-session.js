@@ -19,7 +19,7 @@ test.serial("send \"Session ttl updated\" message response when item updated", a
     const response = await handler(apiGatewayGETRequest);
 
     t.is(response.statusCode, "200");
-    t.is(response.body, "{\"message\":\"Created unprocessed session\"}");
+    t.is(response.body, "{\"message\":\"Inserted unprocessed session\"}");
     t.deepEqual(response.headers, { "Content-Type": "application/json" });
 });
 
@@ -31,6 +31,6 @@ test.serial("send error when user has unprocessed records in the streaming table
     const response = await handler(apiGatewayGETRequest);
 
     t.is(response.statusCode, "400");
-    t.is(response.body, "\"Unprocessed records for user\"");
+    t.is(response.body, "\"Found Unprocessed records for user\"");
     t.deepEqual(response.headers, { "Content-Type": "application/json" });
 });
