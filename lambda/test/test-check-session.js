@@ -43,11 +43,22 @@ test.serial("when there are over the threshold sessions it sets status field to 
     };
 
     const response = await handler(insertEvent);
+	t.deepEqual(response, ["Item inserted"]);
     t.true(putItemSpy.calledWithMatch(expectedParams));
-    t.is(response, "Item inserted");
 });
 
 test.serial("cheking for the new streams only and ignores ttl updates", async t => {
+	const putItemSpy = sinon.spy();
+	
+    AWS.mock("DynamoDB", "putItem", (params, callback) => {
+        putItemSpy(params);
+        callback(null, "Item inserted");
+    });
+
+    AWS.mock("DynamoDB", "query", (params, callback) => {
+        callback(null, invalidUserSessions);
+    });
+
     const response = await handler(updateEvent);
-    t.is(response, "Error: Event is not Insert or number of inserted records is not equal to one.");
+    t.deepEqual(response, []);
 });

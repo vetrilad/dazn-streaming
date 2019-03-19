@@ -1,13 +1,41 @@
 var AWS = require("aws-sdk");
 let constants = require("./constants.js");
+let apiGatewayWrapper = require("./api-gateway.js");
 
-const getUserSession = ({userid, streamId}, dynamoDb) => {
+const getStreamingSession = ({userid, streamId}, dynamoDb) => {
     const params = {
         TableName: "VideoStreams",
         ExpressionAttributeValues: {":v1": {S: userid}, ":v2": {S: streamId}},
+        ConsistentRead: true,
         KeyConditionExpression: "userid = :v1 AND streamId = :v2"
     };
     return dynamoDb.query(params).promise();
+};
+
+const buildResponseItem = (requestItem, session, timeNow) => {
+  let sessionValid = false;
+  let message = null;
+
+  if (session.Items.length <= 0) {
+      sessionValid = false,
+      message = "Session not found";
+  } else if (session.Items[0].status && session.Items[0].status.S == "DROPPED" ) {
+      sessionValid = false,
+      message = "Session Status is " + session.Items[0].status.S;
+  } else if (session.Items[0].ttl.N < timeNow) {
+      sessionValid = false,
+      message = "Session expired";
+  } else {
+      sessionValid = true;
+  }
+
+  return {
+    session: {
+      valid: sessionValid,
+      message: message
+    },
+    ...requestItem
+  };
 };
 
 const refreshStreamingSession = ({userid, streamId}, ttl, dynamo) => {
@@ -22,49 +50,27 @@ const refreshStreamingSession = ({userid, streamId}, ttl, dynamo) => {
     return dynamo.updateItem(params).promise();
 };
 
-const buildRequestItem = (event) => {
-    return {
-        userid: event.queryStringParameters.account,
-        streamId: event.queryStringParameters.streamId
-    };
-};
-
-const done = (err, res) => {
-    return {
-        statusCode: err ? "400" : "200",
-        body: err ? JSON.stringify(err.message) : JSON.stringify(res),
-        headers: {
-            "Content-Type": "application/json",
-        }
-    };
-};
-
 exports.handler = async (event) => {
     const dynamo = new AWS.DynamoDB();
     let response;
-    let requestItem;
 
     try {
-        if (event.httpMethod == "GET") {
-            requestItem = buildRequestItem(event);
-            const res = await getUserSession(requestItem, dynamo);
+        const requestItem = apiGatewayWrapper.buildRequestItem(event);
+        const session = await getStreamingSession(requestItem, dynamo);
+        const responseItem = buildResponseItem(requestItem, session, constants.timeNow());
 
-            if (res.Items.length <= 0) {
-                response = done({message: {error: "Session not found"}}, null);
-            } else if (res.Items[0].status && res.Items[0].status.S == "DROPPED" ) {
-                response = done({message: {error: "Session Status is " + res.Items[0].status.S}}, null);
-            } else if (res.Items[0].ttl.N < constants.timeNow) {
-                response = done({message: {error: "Session expired"}}, null);
-            } else {
-                const ttl = (constants.timeNow + constants.TTL).toString();
-                await refreshStreamingSession(requestItem, ttl, dynamo);
-                response = done(null, {...requestItem, message: "Session ttl updated"});
-            }
+        if (responseItem.session.valid) {
+            const ttl = (constants.timeNow() + constants.TTL).toString();
+            await refreshStreamingSession(requestItem, ttl, dynamo);
+            response = apiGatewayWrapper.done(
+                null,
+                {...responseItem, message: "Session ttl updated"}
+            );
         } else {
-            response = done(new Error(`Unsupported method "${event.httpMethod}"`));
+            response = apiGatewayWrapper.done(new Error(responseItem.session.message));
         }
     } catch(error) {
-        response = done(new Error(`Unsupported method "${event.httpMethod}"`));
+        response = apiGatewayWrapper.done(new Error("Something went wrong " + error));
     }
 
     return response;

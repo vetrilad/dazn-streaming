@@ -1,5 +1,5 @@
 const TTL  = 5;
-const timeNow = Math.floor(Date.now() / 1000);
+let timeNow = () => Math.floor(Date.now() / 1000);
 
 const blockedStream = {
     status: {
@@ -16,10 +16,12 @@ const hotStream = {
     }
 };
 
-const ttlStream = {
-    ttl: {
-        N: (timeNow + TTL).toString()
-    }
+const ttlStream = () => {
+    return {
+        ttl: {
+            N: (timeNow() + TTL).toString()
+        }
+    };
 };
 
 module.exports = { TTL, blockedStream, hotStream, ttlStream, timeNow };

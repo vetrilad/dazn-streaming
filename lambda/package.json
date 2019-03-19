@@ -15,9 +15,9 @@
     "test": "ava -v ./test/test-*.js",
     "lint": "eslint .",
     "build": "yarn build-check && yarn build-put && yarn build-get",
-    "build-check": "zip ../terraform/bin/check_lambda.zip src/constants.js src/check-session.js",
-    "build-put": "zip ../terraform/bin/put_lambda.zip src/constants.js src/put-session.js",
-    "build-get": "zip ../terraform/bin/get_lambda.zip src/constants.js src/get-session.js"
+    "build-check": "zip -j ../terraform/bin/check_lambda.zip ./src/constants.js ./src/check-session.js",
+    "build-put": "zip -j ../terraform/bin/put_lambda.zip ./src/api-gateway.js ./src/constants.js src/put-session.js",
+    "build-get": "zip -j ../terraform/bin/get_lambda.zip ./src/api-gateway.js ./src/constants.js src/get-session.js"
   },
   "dependencies": {
     "axios": "^0.18.0",

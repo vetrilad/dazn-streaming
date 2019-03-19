@@ -1,17 +1,17 @@
 #!/usr/bin/env node
 
-const axios = require('axios');
-const uuidv4 = require('uuid/v4');
-var program = require('commander');
-var fs = require('fs');
+const axios = require("axios");
+const uuidv4 = require("uuid/v4");
+var program = require("commander");
+var fs = require("fs");
 
 program
-    .version('0.1.0')
-    .option('-u, --user [user]', 'Account id')
+    .version("0.1.0")
+    .option("-u, --user [user]", "Account id")
     .parse(process.argv);
 
 console.log("Reading Terraform outputs for API URL");
-var obj = JSON.parse(fs.readFileSync('./terraform/dev/terraform.tfstate', 'utf8'));
+var obj = JSON.parse(fs.readFileSync("../terraform/dev/terraform.tfstate", "utf8"));
 
 const API = obj.modules[0].outputs.api_url.value + "/streaming" || "https://ixgpgxyuhh.execute-api.eu-west-1.amazonaws.com/test/streaming";
 const params = {
@@ -31,15 +31,15 @@ const checkStreaming = (account, streamId, callback) => {
     return axios.get(API + "?account=" + account + "&streamId=" + streamId)
     .then(data => {
         console.log("Check streaming OK ", data.data);
-        callback()
+        callback();
     })
     .catch(err => console.log("Check Streaming error", err));
 };
 
 const sleep5secs = () => {
     setTimeout(() => {
-        checkStreaming(params.account, params.streamId, sleep5secs)
-    }, 1000)
+        checkStreaming(params.account, params.streamId, sleep5secs);
+    }, 1000);
 };
 
 startStreaming(params.account, params.streamId).then((res) => {

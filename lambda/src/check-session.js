@@ -13,7 +13,7 @@ const getUserSessions = (userid, dynamoDb) => {
 
 const activeStreamingSessions = (sessions) => {
     return sessions.Items.filter(item => {
-        return item.ttl.N >= constants.timeNow &&
+        return item.ttl.N >= constants.timeNow() &&
            (item.status.S == "HOT" || item.status.S == "UNPROCESSED");
     });
 };
@@ -21,7 +21,7 @@ const activeStreamingSessions = (sessions) => {
 const requestNewSession = (requestItem) => {
     let sessionType;
 
-    if (requestItem.numberOfActiveSession < 3) {
+    if (requestItem.numberOfActiveSession <= 3) {
         sessionType = constants.hotStream;
     } else {
         sessionType = constants.blockedStream;
@@ -30,7 +30,7 @@ const requestNewSession = (requestItem) => {
     return {
         userid: {S: requestItem.userid},
         streamId: {S: requestItem.streamId},
-        ...constants.ttlStream,
+        ...constants.ttlStream(),
         ...sessionType
     };
 };
@@ -43,14 +43,8 @@ const updateStreamingSession = (newStreamingSession, dynamoDb) => {
     return dynamoDb.putItem(params).promise();
 };
 
-const buildRequestItem = (event) => {
-    let keys;
-
-    if (event.Records.length == 1 && event.Records[0].eventName == "INSERT"){
-        keys = event.Records[0].dynamodb.Keys;
-    } else {
-        throw "Event is not Insert or number of inserted records is not equal to one.";
-    }
+const buildRequestItem = (record) => {
+    const keys = record.dynamodb.Keys;
 
     return {
         userid: keys.userid.S,
@@ -60,21 +54,27 @@ const buildRequestItem = (event) => {
 
 exports.handler = async (event) => {
     const dynamoDb = new AWS.DynamoDB();
-    let response;
+    let response = [];
     let requestItem;
 
     try {
-        requestItem = buildRequestItem(event);
-        const currentSessions = await getUserSessions(requestItem.userid, dynamoDb);
-        const activeSessions = activeStreamingSessions(currentSessions);
-        const newStreamingSession = requestNewSession({
-            numberOfActiveSession: activeSessions.length,
-            ...requestItem
-        });
+        const insertRecords = event.Records.filter((record) => record.eventName == "INSERT");
 
-        response = await updateStreamingSession(newStreamingSession, dynamoDb);
+        response = await insertRecords.reduce(async (accumulator, record) => {
+            requestItem = buildRequestItem(record);
+            const currentSessions = await getUserSessions(requestItem.userid, dynamoDb);
+            const activeSessions = activeStreamingSessions(currentSessions);
+            const newStreamingSession = requestNewSession({
+                numberOfActiveSession: activeSessions.length,
+                ...requestItem
+            });
+
+            const reply = await updateStreamingSession(newStreamingSession, dynamoDb);
+            accumulator.push(reply);
+            return accumulator;
+        }, response);
     } catch(error) {
-        response = "Error: " + error;
+        response.push(error);
     }
 
     return response;

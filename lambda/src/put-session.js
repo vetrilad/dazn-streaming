@@ -1,12 +1,6 @@
 var AWS = require("aws-sdk");
 let constants = require("./constants.js");
-
-const buildRequestItem = (event) => {
-    return {
-        userid: event.queryStringParameters.account,
-        streamId: event.queryStringParameters.streamId
-    };
-};
+let apiGatewayWrapper = require("./api-gateway.js");
 
 const getUserSessions = ({userid}, dynamoDb) => {
     const params = {
@@ -20,7 +14,7 @@ const getUserSessions = ({userid}, dynamoDb) => {
 
 const unprocessedStreamingSessions = (sessions) => {
     return sessions.Items.filter(item => {
-        return item.ttl.N >= constants.timeNow &&
+        return item.ttl.N >= constants.timeNow() &&
            (item.status.S == "UNPROCESSED");
     });
 };
@@ -32,20 +26,10 @@ const insertSession = ({userid, streamId}, dynamoDb) => {
             "userid": {S: userid},
             "streamId": {S: streamId},
             "status": {S: "UNPROCESSED"},
-            ...constants.ttlStream
+            ...constants.ttlStream()
         }
     };
     return dynamoDb.putItem(params).promise();
-};
-
-const done = (err, res) => {
-    return {
-        statusCode: err ? "400" : "200",
-        body: err ? JSON.stringify(err.message) : JSON.stringify(res),
-        headers: {
-            "Content-Type": "application/json",
-        }
-    };
 };
 
 exports.handler = async event => {
@@ -57,18 +41,18 @@ exports.handler = async event => {
     let streamingSessions;
 
     try {
-        requestItem = buildRequestItem(event);
+        requestItem = apiGatewayWrapper.buildRequestItem(event);
         streamingSessions = await getUserSessions(requestItem, dynamoDb);
         unprocessedSessions = unprocessedStreamingSessions(streamingSessions);
 
         if (unprocessedSessions.length === 0) {
             await insertSession(requestItem, dynamoDb);
-            response = done(null, { message: "Created unprocessed session" });
+            response = apiGatewayWrapper.done(null, { message: "Created unprocessed session" });
         } else {
-            response = done({message: "Unprocessed records for user"});
+            response = apiGatewayWrapper.done(new Error("Unprocessed records for user"));
         }
     } catch (error) {
-        response = done({message: "Something went wrong" + error});
+        response = apiGatewayWrapper.done(new Error("Something went wrong" + error));
     }
 
     return response;
