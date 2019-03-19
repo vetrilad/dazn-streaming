@@ -20,6 +20,6 @@ const ttlStream = {
     ttl: {
         N: (timeNow + TTL).toString()
     }
-}
+};
 
 module.exports = { TTL, blockedStream, hotStream, ttlStream, timeNow };

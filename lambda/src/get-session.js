@@ -1,5 +1,5 @@
-var AWS = require('aws-sdk');
-let constants = require('./constants.js')
+var AWS = require("aws-sdk");
+let constants = require("./constants.js");
 
 const getUserSession = ({userid, streamId}, dynamoDb) => {
     const params = {
@@ -17,27 +17,27 @@ const refreshStreamingSession = ({userid, streamId}, ttl, dynamo) => {
         ExpressionAttributeNames: { "#timetolive": "ttl" },
         ExpressionAttributeValues: { ":t": { N: ttl } },
         UpdateExpression: "SET #timetolive = :t"
-    }
+    };
 
-    return dynamo.updateItem(params).promise()
+    return dynamo.updateItem(params).promise();
 };
 
 const buildRequestItem = (event) => {
     return {
         userid: event.queryStringParameters.account,
         streamId: event.queryStringParameters.streamId
-    }
+    };
 };
 
 const done = (err, res) => {
     return {
-        statusCode: err ? '400' : '200',
+        statusCode: err ? "400" : "200",
         body: err ? JSON.stringify(err.message) : JSON.stringify(res),
         headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
         }
     };
-}
+};
 
 exports.handler = async (event) => {
     const dynamo = new AWS.DynamoDB();
@@ -50,11 +50,11 @@ exports.handler = async (event) => {
             const res = await getUserSession(requestItem, dynamo);
 
             if (res.Items.length <= 0) {
-                response = done({message: {error: "Session not found"}}, null)
+                response = done({message: {error: "Session not found"}}, null);
             } else if (res.Items[0].status && res.Items[0].status.S == "DROPPED" ) {
-                response = done({message: {error: "Session Status is " + res.Items[0].status.S}}, null)
+                response = done({message: {error: "Session Status is " + res.Items[0].status.S}}, null);
             } else if (res.Items[0].ttl.N < constants.timeNow) {
-                response = done({message: {error: "Session expired"}}, null)
+                response = done({message: {error: "Session expired"}}, null);
             } else {
                 const ttl = (constants.timeNow + constants.TTL).toString();
                 await refreshStreamingSession(requestItem, ttl, dynamo);

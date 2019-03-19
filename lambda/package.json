@@ -13,7 +13,7 @@
   "license": "MIT",
   "scripts": {
     "test": "ava -v ./test/test-*.js",
-    "lint": "eslint . --fix",
+    "lint": "eslint .",
     "build": "yarn build-check && yarn build-put && yarn build-get",
     "build-check": "zip ../terraform/bin/check_lambda.zip src/constants.js src/check-session.js",
     "build-put": "zip ../terraform/bin/put_lambda.zip src/constants.js src/put-session.js",

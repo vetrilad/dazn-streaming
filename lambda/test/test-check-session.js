@@ -1,4 +1,4 @@
-import test from 'ava';
+import test from "ava";
 import sinon from "sinon";
 import AWS from "aws-sdk-mock";
 
@@ -6,19 +6,19 @@ import { handler } from "../src/check-session.js";
 import { invalidUserSessions, insertEvent, updateEvent } from "./constants.js";
 
 test.afterEach(() => {
-	AWS.restore('DynamoDB');
+	AWS.restore("DynamoDB");
 });
 
-test.serial('when there are over the threshold sessions it sets status field to errored and reasons field to threshold exided', async t => {
+test.serial("when there are over the threshold sessions it sets status field to errored and reasons field to threshold exided", async t => {
     const putItemSpy = sinon.spy();
 
-    AWS.mock('DynamoDB', 'putItem', (params, callback) => {
+    AWS.mock("DynamoDB", "putItem", (params, callback) => {
         putItemSpy(params);
         callback(null, "Item inserted");
     });
 
-    AWS.mock('DynamoDB', 'query', (params, callback) => {
-        callback(null, invalidUserSessions)
+    AWS.mock("DynamoDB", "query", (params, callback) => {
+        callback(null, invalidUserSessions);
     });
 
     var expectedParams = {
@@ -44,10 +44,10 @@ test.serial('when there are over the threshold sessions it sets status field to 
 
     const response = await handler(insertEvent);
     t.true(putItemSpy.calledWithMatch(expectedParams));
-    t.is(response, "Item inserted")
+    t.is(response, "Item inserted");
 });
 
-test.serial('cheking for the new streams only and ignores ttl updates', async t => {
+test.serial("cheking for the new streams only and ignores ttl updates", async t => {
     const response = await handler(updateEvent);
     t.is(response, "Error: Event is not Insert or number of inserted records is not equal to one.");
 });

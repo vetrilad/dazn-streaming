@@ -1,5 +1,5 @@
-let AWS = require('aws-sdk');
-let constants = require('./constants.js')
+let AWS = require("aws-sdk");
+let constants = require("./constants.js");
 
 const getUserSessions = (userid, dynamoDb) => {
     const params = {
@@ -22,17 +22,17 @@ const requestNewSession = (requestItem) => {
     let sessionType;
 
     if (requestItem.numberOfActiveSession < 3) {
-        sessionType = constants.hotStream
+        sessionType = constants.hotStream;
     } else {
-        sessionType = constants.blockedStream
-    };
+        sessionType = constants.blockedStream;
+    }
 
     return {
         userid: {S: requestItem.userid},
         streamId: {S: requestItem.streamId},
         ...constants.ttlStream,
         ...sessionType
-    }
+    };
 };
 
 const updateStreamingSession = (newStreamingSession, dynamoDb) => {
@@ -49,24 +49,24 @@ const buildRequestItem = (event) => {
     if (event.Records.length == 1 && event.Records[0].eventName == "INSERT"){
         keys = event.Records[0].dynamodb.Keys;
     } else {
-        throw "Event is not Insert or number of inserted records is not equal to one."
+        throw "Event is not Insert or number of inserted records is not equal to one.";
     }
 
     return {
         userid: keys.userid.S,
         streamId: keys.streamId.S
-    }
+    };
 };
 
 exports.handler = async (event) => {
     const dynamoDb = new AWS.DynamoDB();
     let response;
-    let requestItem
+    let requestItem;
 
     try {
         requestItem = buildRequestItem(event);
         const currentSessions = await getUserSessions(requestItem.userid, dynamoDb);
-        const activeSessions = activeStreamingSessions(currentSessions)
+        const activeSessions = activeStreamingSessions(currentSessions);
         const newStreamingSession = requestNewSession({
             numberOfActiveSession: activeSessions.length,
             ...requestItem

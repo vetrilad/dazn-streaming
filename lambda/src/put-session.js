@@ -1,11 +1,11 @@
-var AWS = require('aws-sdk');
-let constants = require('./constants.js');
+var AWS = require("aws-sdk");
+let constants = require("./constants.js");
 
 const buildRequestItem = (event) => {
     return {
         userid: event.queryStringParameters.account,
         streamId: event.queryStringParameters.streamId
-    }
+    };
 };
 
 const getUserSessions = ({userid}, dynamoDb) => {
@@ -40,20 +40,21 @@ const insertSession = ({userid, streamId}, dynamoDb) => {
 
 const done = (err, res) => {
     return {
-        statusCode: err ? '400' : '200',
+        statusCode: err ? "400" : "200",
         body: err ? JSON.stringify(err.message) : JSON.stringify(res),
         headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
         }
     };
-}
+};
 
 exports.handler = async event => {
     var dynamoDb = new AWS.DynamoDB();
 
     let response;
-    let requestitem;
+    let requestItem;
     let unprocessedSessions;
+    let streamingSessions;
 
     try {
         requestItem = buildRequestItem(event);
