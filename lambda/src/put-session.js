@@ -1,5 +1,5 @@
 var AWS = require('aws-sdk');
-const TTL = 5; // seconds
+let constants = require('./constants.js');
 
 const buildRequestItem = (event) => {
     return {
@@ -20,7 +20,7 @@ const getUserSessions = ({userid}, dynamoDb) => {
 
 const unprocessedStreamingSessions = (sessions) => {
     return sessions.Items.filter(item => {
-        return item.ttl.N >= Math.floor(Date.now() / 1000) &&
+        return item.ttl.N >= constants.timeNow &&
            (item.status.S == "UNPROCESSED");
     });
 };
@@ -32,7 +32,7 @@ const insertSession = ({userid, streamId}, dynamoDb) => {
             "userid": {S: userid},
             "streamId": {S: streamId},
             "status": {S: "UNPROCESSED"},
-            "ttl": {N: (Math.floor(Date.now() / 1000) + TTL).toString()}
+            ...constants.ttlStream
         }
     };
     return dynamoDb.putItem(params).promise();

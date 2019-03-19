@@ -1,5 +1,5 @@
 var AWS = require('aws-sdk');
-const TTL = 5;
+let constants = require('./constants.js')
 
 const getUserSession = ({userid, streamId}, dynamoDb) => {
     const params = {
@@ -53,10 +53,10 @@ exports.handler = async (event) => {
                 response = done({message: {error: "Session not found"}}, null)
             } else if (res.Items[0].status && res.Items[0].status.S == "DROPPED" ) {
                 response = done({message: {error: "Session Status is " + res.Items[0].status.S}}, null)
-            } else if (res.Items[0].ttl.N < Math.floor(Date.now() / 1000)) {
+            } else if (res.Items[0].ttl.N < constants.timeNow) {
                 response = done({message: {error: "Session expired"}}, null)
             } else {
-                const ttl = ((Math.floor(Date.now() / 1000) + TTL)).toString();
+                const ttl = (constants.timeNow + constants.TTL).toString();
                 await refreshStreamingSession(requestItem, ttl, dynamo);
                 response = done(null, {...requestItem, message: "Session ttl updated"});
             }

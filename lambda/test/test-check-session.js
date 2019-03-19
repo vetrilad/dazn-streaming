@@ -49,5 +49,5 @@ test.serial('when there are over the threshold sessions it sets status field to 
 
 test.serial('cheking for the new streams only and ignores ttl updates', async t => {
     const response = await handler(updateEvent);
-    t.is(response, "Bypass Stream Check function");
+    t.is(response, "Error: Event is not Insert or number of inserted records is not equal to one.");
 });
