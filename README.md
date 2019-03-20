@@ -12,22 +12,25 @@ curl -X PUT https://ixgpgxyuhh.execute-api.eu-west-1.amazonaws.com/test/streamin
 
 Get Session
 curl https://ixgpgxyuhh.execute-api.eu-west-1.amazonaws.com/test/streaming\?account\=123\&streamId\=112
-{"session":{"valid":true},"userid":"123","streamId":"112","message":"Session ttl updated"}%
+{"session":{"valid":true, message: "HOT"},"userid":"123","streamId":"112","message":"Session ttl updated"}%
 
 ```
 
 ```
+cd lambda
 chmod u+x simulator.js
-./simulate.js --help
+./simulate.js
 ```
 
 ### Example Output
 
 ```
+cd lambda
+chmod u+x simulator.js
 ./simulator.js
 Reading Terraform outputs for API URL
-Start Streaming OK { message: 'Created unprocessed session' }
-Check streaming OK  { session: { valid: true, message: null },
+Start Streaming OK { message: 'Inserted unprocessed session' }
+Check streaming OK  { session: { valid: true, message: "HOT" },
   userid: 'a1ab2eab-ab89-4d61-858b-9ea742138236',
   streamId: '7cfb620c-a86a-417f-8fb7-d2e56f4c7694',
   message: 'Session ttl updated' }
@@ -85,7 +88,7 @@ TODO:
  + ~~dynamodb automatic ttl~~
  + ~~deployment scripts~~
  + ~~integration tests scripts to simulate streaming~~
- + refactoring javascript/deployment (webpack maybe) / terraform policies
+ + ~~refactoring javascript/deployment (webpack maybe) / terraform policies~~
  + Create more granular IAM roles for lambda execution.
  + Add Webpack build and include streamId uuid creation into the putStreaming
  + Authentication/authorisation
