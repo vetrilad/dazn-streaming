@@ -6,8 +6,14 @@ The service is deployed to a personal AWS test environment using master branch o
 `API = https://ixgpgxyuhh.execute-api.eu-west-1.amazonaws.com/test/streaming`
 
 ```
-Create Session - PUT https://ixgpgxyuhh.execute-api.eu-west-1.amazonaws.com/test/streaming?account={string}&streamId={string}
-Get Session - GET https://ixgpgxyuhh.execute-api.eu-west-1.amazonaws.com/test/streaming?account={string}&streamId={string}
+Create Session
+curl -X PUT https://ixgpgxyuhh.execute-api.eu-west-1.amazonaws.com/test/streaming\?account\=123\&streamId\=112
+{"message":"Inserted unprocessed session"}
+
+Get Session
+curl https://ixgpgxyuhh.execute-api.eu-west-1.amazonaws.com/test/streaming\?account\=123\&streamId\=112
+{"session":{"valid":true},"userid":"123","streamId":"112","message":"Session ttl updated"}%
+
 ```
 
 ```
