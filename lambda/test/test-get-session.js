@@ -19,7 +19,7 @@ test.serial("send \"Session ttl updated\" message response when item updated", a
 
     const response = await handler(apiGatewayGETRequest);
     t.is(response.statusCode, "200");
-    t.is(response.body, "{\"session\":{\"valid\":true,\"message\":null},\"streamId\":\"1235\",\"message\":\"Session ttl updated\"}");
+    t.is(response.body, "{\"session\":{\"valid\":true,\"message\":\"HOT\"},\"streamId\":\"1235\",\"message\":\"Session ttl updated\"}");
     t.deepEqual(response.headers, { "Content-Type": "application/json" });
 });
 

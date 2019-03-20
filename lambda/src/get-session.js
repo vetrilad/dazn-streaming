@@ -27,6 +27,7 @@ const buildResponseItem = (requestItem, session, timeNow) => {
       message = "Session expired";
   } else {
       sessionValid = true;
+      message = session.Items[0].status.S;
   }
 
   return {
